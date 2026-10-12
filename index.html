@@ -1,0 +1,1929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Certificate Management System</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    background:#f4f6f9;
+    color:#222;
+}
+
+/* LOGIN & CHANGE / FORGOT PASSWORD PAGES */
+#loginPage, #changePasswordPage, #externalChangePasswordPage, #forgotPasswordPage{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:linear-gradient(135deg,#1f4e78,#163a5a);
+}
+
+.login-box{
+    background:white;
+    width:380px;
+    max-width:92%;
+    padding:35px;
+    border-radius:12px;
+    box-shadow:0 10px 30px rgba(0,0,0,.25);
+}
+
+.login-box h1{
+    text-align:center;
+    color:#1f4e78;
+    margin-bottom:8px;
+    font-size:24px;
+}
+
+.login-box p{
+    text-align:center;
+    color:#777;
+    margin-bottom:25px;
+}
+
+.login-group{
+    margin-bottom:18px;
+}
+
+.login-group label{
+    display:block;
+    font-weight:bold;
+    margin-bottom:7px;
+}
+
+.login-group input, .login-group select{
+    width:100%;
+    padding:12px;
+    border:1px solid #ccc;
+    border-radius:6px;
+    font-size:15px;
+}
+
+.login-btn{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:6px;
+    background:#1f4e78;
+    color:white;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.login-btn:hover{
+    opacity:.9;
+}
+
+.login-error{
+    color:#dc3545;
+    text-align:center;
+    margin-top:12px;
+    font-size:14px;
+    min-height:18px;
+}
+
+/* FOOTER LINKS INSIDE LOGIN BOX */
+.login-footer-links {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+    font-size: 13px;
+}
+
+.login-footer-links a {
+    color: #1f4e78;
+    text-decoration: none;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.login-footer-links a:hover {
+    text-decoration: underline;
+}
+
+/* MAIN */
+#app{
+    display:none;
+}
+
+.header{
+    background:#1f4e78;
+    color:white;
+    padding:16px 25px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+}
+
+.header h1{
+    font-size:23px;
+}
+
+.header-right{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.admin-name{
+    font-size:14px;
+}
+
+.logout-btn{
+    background:#dc3545;
+    color:white;
+    padding:8px 13px;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.container{
+    padding:25px;
+    max-width:1500px;
+    margin:auto;
+}
+
+.dashboard{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:20px;
+    margin-bottom:25px;
+}
+
+.card{
+    background:white;
+    padding:22px;
+    border-radius:10px;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+
+.card h3{
+    font-size:15px;
+    color:#666;
+    margin-bottom:10px;
+}
+
+.card p{
+    font-size:30px;
+    font-weight:bold;
+    color:#1f4e78;
+}
+
+.actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    margin-bottom:25px;
+}
+
+button{
+    border:none;
+    padding:10px 15px;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.btn-primary{
+    background:#1f4e78;
+    color:white;
+}
+
+.btn-success{
+    background:#198754;
+    color:white;
+}
+
+.btn-warning{
+    background:#ffc107;
+    color:#222;
+}
+
+.btn-danger{
+    background:#dc3545;
+    color:white;
+}
+
+.btn-info{
+    background:#0dcaf0;
+    color:#111;
+}
+
+button:hover{
+    opacity:.85;
+}
+
+.section{
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+    margin-bottom: 25px;
+}
+
+.section-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:15px;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.search-box{
+    padding:10px;
+    border:1px solid #ccc;
+    border-radius:6px;
+    width:280px;
+}
+
+.table-container{
+    overflow-x:auto;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:1000px;
+}
+
+th,td{
+    padding:10px;
+    border-bottom:1px solid #ddd;
+    text-align:left;
+    font-size:14px;
+}
+
+th{
+    background:#eef3f8;
+}
+
+.modal{
+    display:none;
+    position:fixed;
+    z-index:1000;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,.55);
+    overflow:auto;
+}
+
+.modal-content{
+    background:white;
+    width:95%;
+    max-width:1000px;
+    margin:30px auto;
+    border-radius:10px;
+    padding:25px;
+}
+
+.modal-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+.close{
+    font-size:28px;
+    cursor:pointer;
+    color:#777;
+}
+
+.form-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:15px;
+}
+
+.form-group{
+    display:flex;
+    flex-direction:column;
+}
+
+.form-group label{
+    font-weight:bold;
+    margin-bottom:6px;
+    font-size:14px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea{
+    padding:10px;
+    border:1px solid #ccc;
+    border-radius:6px;
+    font-size:14px;
+}
+
+.form-group textarea{
+    min-height:80px;
+    resize:vertical;
+}
+
+.full{
+    grid-column:1/-1;
+}
+
+.form-buttons{
+    margin-top:20px;
+    display:flex;
+    gap:10px;
+}
+
+.details-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:12px;
+}
+
+.detail-box{
+    background:#f7f8fa;
+    padding:12px;
+    border-radius:6px;
+}
+
+.detail-box strong{
+    display:block;
+    color:#555;
+    margin-bottom:5px;
+}
+
+.note{
+    background:#fff3cd;
+    color:#664d03;
+    padding:12px;
+    border-radius:7px;
+    margin-bottom:15px;
+    font-size:14px;
+}
+
+.document-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    padding:12px;
+    border:1px solid #ddd;
+    border-radius:7px;
+    margin-bottom:10px;
+    background:#fafafa;
+}
+
+.document-info{
+    flex:1;
+}
+
+.document-info strong{
+    display:block;
+    margin-bottom:4px;
+}
+
+.document-info small{
+    color:#666;
+}
+
+.document-actions{
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+}
+
+.file-upload{
+    border:2px dashed #bbb;
+    padding:20px;
+    border-radius:8px;
+    margin-top:15px;
+    background:#fafafa;
+}
+
+@media(max-width:900px){
+    .dashboard{ grid-template-columns:repeat(2,1fr); }
+    .form-grid{ grid-template-columns:repeat(2,1fr); }
+}
+
+@media(max-width:600px){
+    .header{ padding:14px; }
+    .header h1{ font-size:17px; }
+    .header-right{ gap:7px; }
+    .admin-name{ display:none; }
+    .container{ padding:12px; }
+    .dashboard{ grid-template-columns:1fr 1fr; gap:10px; }
+    .card{ padding:15px; }
+    .card p{ font-size:24px; }
+    .form-grid{ grid-template-columns:1fr; }
+    .details-grid{ grid-template-columns:1fr; }
+    .modal-content{ width:96%; padding:15px; margin:15px auto; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="loginPage">
+    <div class="login-box">
+        <h1>Certificate Management</h1>
+        <p>User Login</p>
+
+        <form id="loginForm">
+            <div class="login-group">
+                <label>Username</label>
+                <input type="text" id="loginUsername" placeholder="Enter username" autocomplete="username" required>
+            </div>
+
+            <div class="login-group">
+                <label>Password</label>
+                <input type="password" id="loginPassword" placeholder="Enter password" autocomplete="current-password" required>
+            </div>
+
+            <button type="submit" class="login-btn">Login</button>
+            <div id="loginError" class="login-error"></div>
+
+            <!-- LOGIN FOOTER LINKS (CHANGE PASSWORD & FORGOT PASSWORD) -->
+            <div class="login-footer-links">
+                <a onclick="showExternalChangePassword()">Change Password</a>
+                <a onclick="showForgotPasswordPage()">Forgot Password?</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- FIRST TIME LOGIN MANDATORY CHANGE PASSWORD PAGE -->
+<div id="changePasswordPage" style="display:none;">
+    <div class="login-box">
+        <h1>Change Password</h1>
+        <p>You need to change your password upon first login.</p>
+
+        <form id="changePasswordForm">
+            <div class="login-group">
+                <label>New Password</label>
+                <input type="password" id="newPassword" placeholder="Enter new password" required>
+            </div>
+
+            <div class="login-group">
+                <label>Confirm Password</label>
+                <input type="password" id="confirmPassword" placeholder="Confirm new password" required>
+            </div>
+
+            <button type="submit" class="login-btn">Update Password</button>
+            <div id="changePasswordError" class="login-error"></div>
+        </form>
+    </div>
+</div>
+
+<!-- EXTERNAL / PRE-LOGIN CHANGE PASSWORD PAGE -->
+<div id="externalChangePasswordPage" style="display:none;">
+    <div class="login-box">
+        <h1>Change Password</h1>
+        <p>Enter details to update your password</p>
+
+        <form id="externalChangePasswordForm">
+            <div class="login-group">
+                <label>Username</label>
+                <input type="text" id="extUsername" placeholder="Enter username" required>
+            </div>
+            <div class="login-group">
+                <label>Current Password</label>
+                <input type="password" id="extCurrentPassword" placeholder="Enter current password" required>
+            </div>
+            <div class="login-group">
+                <label>New Password</label>
+                <input type="password" id="extNewPassword" placeholder="Enter new password" required>
+            </div>
+
+            <button type="submit" class="login-btn">Update Password</button>
+            <button type="button" class="btn-danger" style="width:100%; margin-top:10px; padding:10px;" onclick="showLoginPage()">Back to Login</button>
+            <div id="extChangePasswordError" class="login-error"></div>
+        </form>
+    </div>
+</div>
+
+<!-- FORGOT PASSWORD PAGE -->
+<div id="forgotPasswordPage" style="display:none;">
+    <div class="login-box">
+        <h1>Forgot Password</h1>
+        <p>Enter your username to request reset</p>
+
+        <form id="forgotPasswordForm">
+            <div class="login-group">
+                <label>Username</label>
+                <input type="text" id="forgotUsername" placeholder="Enter your username" required>
+            </div>
+
+            <button type="submit" class="login-btn">Submit Request</button>
+            <button type="button" class="btn-danger" style="width:100%; margin-top:10px; padding:10px;" onclick="showLoginPage()">Back to Login</button>
+            <div id="forgotPasswordError" class="login-error"></div>
+        </form>
+    </div>
+</div>
+
+<!-- MAIN APPLICATION -->
+<div id="app">
+    <div class="header">
+        <h1>Certificate Management System</h1>
+        <div class="header-right">
+            <span class="admin-name" id="currentLoggedInUser">👤 Admin</span>
+            <button class="btn-warning" id="manageUsersBtn" onclick="openUsersModal()">👥 Users</button>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- DASHBOARD -->
+        <div class="dashboard">
+            <div class="card">
+                <h3>Total Customers</h3>
+                <p id="totalCustomers">0</p>
+            </div>
+            <div class="card">
+                <h3>Total Applications</h3>
+                <p id="totalApplications">0</p>
+            </div>
+            <div class="card">
+                <h3>Pending Applications</h3>
+                <p id="pendingApplications">0</p>
+            </div>
+            <div class="card">
+                <h3>Approved Applications</h3>
+                <p id="approvedApplications">0</p>
+            </div>
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div class="actions">
+            <button class="btn-primary" onclick="openCustomerForm()">+ New Customer</button>
+            <button class="btn-success" onclick="openSearchModal()">🔍 Search Customer</button>
+            <button class="btn-info" onclick="displayApplications()">📋 Applications</button>
+        </div>
+
+        <!-- PENDING APPROVALS SECTION (MAIN ADMIN ONLY) -->
+        <div class="section" id="approvalSection" style="display:none; border:2px solid #dc3545; background:#fff8f8;">
+            <div class="section-header">
+                <h2 style="color:#dc3545;">⚠️ Pending Approvals / Requests <span id="requestBadge" style="background:#dc3545; color:white; padding:3px 10px; border-radius:12px; font-size:16px;">0</span></h2>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Details / Identifier</th>
+                            <th>Requested By</th>
+                            <th>Reason / Info</th>
+                            <th>Time</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="approvalList"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- APPLICATIONS -->
+        <div class="section">
+            <div class="section-header">
+                <h2>Applications</h2>
+                <input type="text" id="applicationSearch" class="search-box" placeholder="Search application..." onkeyup="displayApplications()">
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Application No.</th>
+                            <th>Customer Name</th>
+                            <th>Mobile</th>
+                            <th>Certificate</th>
+                            <th>Application Date</th>
+                            <th>Status</th>
+                            <th>Certificate No.</th>
+                            <th>Amount</th>
+                            <th>Due</th>
+                            <th>Last Modified By</th>
+                            <th>Documents</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="applicationTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- USER / STAFF MANAGEMENT MODAL -->
+<div class="modal" id="usersModal">
+    <div class="modal-content" style="max-width:800px;">
+        <div class="modal-header">
+            <h2>Manage Staff & Users</h2>
+            <span class="close" onclick="closeUsersModal()">&times;</span>
+        </div>
+
+        <form id="addUserForm" style="margin-bottom:25px; padding:15px; background:#f7f8fa; border-radius:8px;">
+            <h3 style="margin-bottom:10px; font-size:16px;">Add New User / Staff</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Username *</label>
+                    <input type="text" id="newUsername" required>
+                </div>
+                <div class="form-group">
+                    <label>Default Password *</label>
+                    <input type="text" id="newUserPassword" required>
+                </div>
+                <div class="form-group">
+                    <label>Role</label>
+                    <select id="newUserRole">
+                        <option value="Staff">Staff</option>
+                        <option value="Admin">Admin</option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="btn-primary" style="margin-top:12px;">+ Add User</button>
+        </form>
+
+        <h3>Existing Users</h3>
+        <br>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>First Login Pending?</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- CUSTOMER MODAL -->
+<div class="modal" id="customerModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="formTitle">New Customer</h2>
+            <span class="close" onclick="closeCustomerModal()">&times;</span>
+        </div>
+        <form id="customerForm">
+            <input type="hidden" id="editIndex">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Application Number</label>
+                    <input type="text" id="applicationNumber" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Customer Name *</label>
+                    <input type="text" id="customerName" required>
+                </div>
+                <div class="form-group">
+                    <label>Father / Husband Name</label>
+                    <input type="text" id="fatherName">
+                </div>
+                <div class="form-group">
+                    <label>Mobile Number *</label>
+                    <input type="text" id="mobile" maxlength="10" required>
+                </div>
+                <div class="form-group">
+                    <label>Aadhaar Number</label>
+                    <input type="text" id="aadhaar" maxlength="12">
+                </div>
+                <div class="form-group">
+                    <label>Date of Birth</label>
+                    <input type="date" id="dob">
+                </div>
+                <div class="form-group">
+                    <label>Gender</label>
+                    <select id="gender">
+                        <option value="">Select</option>
+                        <option>Male</option>
+                        <option>Female</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>District</label>
+                    <input type="text" id="district">
+                </div>
+                <div class="form-group">
+                    <label>Block</label>
+                    <input type="text" id="block">
+                </div>
+                <div class="form-group">
+                    <label>Panchayat</label>
+                    <input type="text" id="panchayat">
+                </div>
+                <div class="form-group">
+                    <label>Village</label>
+                    <input type="text" id="village">
+                </div>
+                <div class="form-group">
+                    <label>Certificate Type * <small style="font-weight:normal; color:#666;">(Hold Ctrl to select multiple)</small></label>
+                    <select id="certificateType" multiple required style="height:90px;">
+                        <option>Caste Certificate</option>
+                        <option>Income Certificate</option>
+                        <option>Residence Certificate</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Application Date</label>
+                    <input type="date" id="applicationDate">
+                </div>
+                <div class="form-group">
+                    <label>Service Charge</label>
+                    <input type="number" id="serviceCharge" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Amount Received</label>
+                    <input type="number" id="amountReceived" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Due Amount</label>
+                    <input type="number" id="dueAmount" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Payment Mode</label>
+                    <select id="paymentMode">
+                        <option value="">Select</option>
+                        <option>Cash</option>
+                        <option>UPI</option>
+                        <option>Bank Transfer</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="status">
+                        <option>Pending</option>
+                        <option>Applied</option>
+                        <option>Approved</option>
+                        <option>Rejected</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Certificate Number</label>
+                    <input type="text" id="certificateNumber">
+                </div>
+                <div class="form-group">
+                    <label>Approval Date</label>
+                    <input type="date" id="approvalDate">
+                </div>
+                <div class="form-group">
+                    <label>Delivery Date</label>
+                    <input type="date" id="deliveryDate">
+                </div>
+                <div class="form-group full">
+                    <label>Full Address</label>
+                    <textarea id="address"></textarea>
+                </div>
+                <div class="form-group full">
+                    <label>Remarks</label>
+                    <textarea id="remarks"></textarea>
+                </div>
+            </div>
+            <div class="form-buttons">
+                <button type="submit" class="btn-primary">Save Customer</button>
+                <button type="button" class="btn-danger" onclick="closeCustomerModal()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- SEARCH MODAL -->
+<div class="modal" id="searchModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Search Customer</h2>
+            <span class="close" onclick="closeSearchModal()">&times;</span>
+        </div>
+        <input type="text" id="customerSearch" class="search-box" style="width:100%;margin-bottom:20px;" placeholder="Name / Mobile / Application No." onkeyup="searchCustomers()">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Application No.</th>
+                        <th>Name</th>
+                        <th>Mobile</th>
+                        <th>Certificate</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="searchResults"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- DETAILS MODAL -->
+<div class="modal" id="detailsModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Customer Details</h2>
+            <span class="close" onclick="closeDetailsModal()">&times;</span>
+        </div>
+        <div id="customerDetails"></div>
+        <div class="form-buttons">
+            <button class="btn-primary" onclick="printApplication()">🖨 Print Application</button>
+            <button class="btn-success" onclick="printReceipt()">🧾 Print Receipt</button>
+            <button class="btn-warning" style="background-color:#25D366; color:white;" onclick="sendWhatsAppMsg(currentDetailsIndex)">📱 WhatsApp Message</button>
+        </div>
+    </div>
+</div>
+
+<!-- DOCUMENT MODAL -->
+<div class="modal" id="documentsModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Documents Management</h2>
+            <span class="close" onclick="closeDocumentsModal()">&times;</span>
+        </div>
+        <div class="note">
+            Use dummy files for testing. Do not store real sensitive documents in this local version.
+        </div>
+        <div id="documentApplicationInfo"></div>
+        <div class="file-upload">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Document Type</label>
+                    <select id="documentType">
+                        <option value="">Select Document</option>
+                        <option>Aadhaar Card</option>
+                        <option>Photo</option>
+                        <option>Caste Proof</option>
+                        <option>Income Proof</option>
+                        <option>Residence Proof</option>
+                        <option>Other Document</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Select File</label>
+                    <input type="file" id="documentFile" accept=".jpg,.jpeg,.png,.pdf">
+                </div>
+            </div>
+            <br>
+            <button class="btn-primary" onclick="uploadDocument()">📤 Upload Document</button>
+            <p style="margin-top:10px;font-size:13px;color:#666;">JPG, JPEG, PNG, PDF | Maximum 2 MB</p>
+        </div>
+        <div style="margin-top:20px;">
+            <h3 style="margin-bottom:15px;">Uploaded Documents</h3>
+            <div id="documentsList"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+/* USER & SYSTEM AUTHENTICATION */
+const DEFAULT_USERS = [
+    { username: "admin", password: "India@123", role: "Admin", mustChangePassword: false }
+];
+
+let users = JSON.parse(localStorage.getItem("cmsUsers")) || DEFAULT_USERS;
+let deleteRequests = JSON.parse(localStorage.getItem("cmsDeleteRequests")) || [];
+let forgotRequests = JSON.parse(localStorage.getItem("cmsForgotRequests")) || [];
+
+function saveUsers(){
+    localStorage.setItem("cmsUsers", JSON.stringify(users));
+}
+
+function saveDeleteRequests(){
+    localStorage.setItem("cmsDeleteRequests", JSON.stringify(deleteRequests));
+}
+
+function saveForgotRequests(){
+    localStorage.setItem("cmsForgotRequests", JSON.stringify(forgotRequests));
+}
+
+function getLoggedInUser(){
+    return JSON.parse(sessionStorage.getItem("cmsCurrentUser"));
+}
+
+function hideAllScreens(){
+    document.getElementById("loginPage").style.display = "none";
+    document.getElementById("changePasswordPage").style.display = "none";
+    document.getElementById("externalChangePasswordPage").style.display = "none";
+    document.getElementById("forgotPasswordPage").style.display = "none";
+    document.getElementById("app").style.display = "none";
+}
+
+function showLoginPage(){
+    hideAllScreens();
+    document.getElementById("loginPage").style.display = "flex";
+}
+
+function showExternalChangePassword(){
+    hideAllScreens();
+    document.getElementById("extUsername").value = "";
+    document.getElementById("extCurrentPassword").value = "";
+    document.getElementById("extNewPassword").value = "";
+    document.getElementById("extChangePasswordError").innerText = "";
+    document.getElementById("externalChangePasswordPage").style.display = "flex";
+}
+
+function showForgotPasswordPage(){
+    hideAllScreens();
+    document.getElementById("forgotUsername").value = "";
+    document.getElementById("forgotPasswordError").innerText = "";
+    document.getElementById("forgotPasswordPage").style.display = "flex";
+}
+
+function checkLogin(){
+    let loggedUser = getLoggedInUser();
+    hideAllScreens();
+
+    if(loggedUser){
+        if(loggedUser.mustChangePassword){
+            document.getElementById("changePasswordPage").style.display = "flex";
+        } else {
+            document.getElementById("app").style.display = "block";
+            document.getElementById("currentLoggedInUser").innerText = "👤 " + loggedUser.username + " (" + loggedUser.role + ")";
+
+            if(loggedUser.role === "Admin"){
+                document.getElementById("manageUsersBtn").style.display = "inline-block";
+            } else {
+                document.getElementById("manageUsersBtn").style.display = "none";
+            }
+            renderApprovals();
+        }
+    } else {
+        document.getElementById("loginPage").style.display = "flex";
+    }
+}
+
+document.getElementById("loginForm").addEventListener("submit", function(e){
+    e.preventDefault();
+
+    let username = document.getElementById("loginUsername").value.trim();
+    let password = document.getElementById("loginPassword").value;
+
+    let userFound = users.find(u => u.username.toLowerCase() === username.toLowerCase() && u.password === password);
+
+    if(userFound){
+        sessionStorage.setItem("cmsCurrentUser", JSON.stringify(userFound));
+        document.getElementById("loginError").innerText = "";
+        checkLogin();
+        updateDashboard();
+        displayApplications();
+    } else {
+        document.getElementById("loginError").innerText = "Invalid Username or Password.";
+    }
+});
+
+/* FIRST TIME LOGIN MANDATORY CHANGE PASSWORD */
+document.getElementById("changePasswordForm").addEventListener("submit", function(e){
+    e.preventDefault();
+
+    let newPass = document.getElementById("newPassword").value;
+    let confirmPass = document.getElementById("confirmPassword").value;
+    let errDiv = document.getElementById("changePasswordError");
+
+    if(newPass.length < 4){
+        errDiv.innerText = "Password must be at least 4 characters long.";
+        return;
+    }
+
+    if(newPass !== confirmPass){
+        errDiv.innerText = "Passwords do not match.";
+        return;
+    }
+
+    let loggedUser = getLoggedInUser();
+    let userIndex = users.findIndex(u => u.username.toLowerCase() === loggedUser.username.toLowerCase());
+
+    if(userIndex !== -1){
+        users[userIndex].password = newPass;
+        users[userIndex].mustChangePassword = false;
+        saveUsers();
+
+        sessionStorage.setItem("cmsCurrentUser", JSON.stringify(users[userIndex]));
+        alert("Password updated successfully!");
+        checkLogin();
+    }
+});
+
+/* FOOTER CHANGE PASSWORD (DIRECT FROM LOGIN PAGE) */
+document.getElementById("externalChangePasswordForm").addEventListener("submit", function(e){
+    e.preventDefault();
+
+    let username = document.getElementById("extUsername").value.trim();
+    let currentPass = document.getElementById("extCurrentPassword").value;
+    let newPass = document.getElementById("extNewPassword").value;
+    let errDiv = document.getElementById("extChangePasswordError");
+
+    let userIndex = users.findIndex(u => u.username.toLowerCase() === username.toLowerCase());
+
+    if(userIndex === -1){
+        errDiv.innerText = "Username not found.";
+        return;
+    }
+
+    if(users[userIndex].password !== currentPass){
+        errDiv.innerText = "Current password is incorrect.";
+        return;
+    }
+
+    if(newPass.length < 4){
+        errDiv.innerText = "New password must be at least 4 characters long.";
+        return;
+    }
+
+    users[userIndex].password = newPass;
+    users[userIndex].mustChangePassword = false;
+    saveUsers();
+
+    alert("Password updated successfully! Please login with your new password.");
+    showLoginPage();
+});
+
+/* FORGOT PASSWORD FORM SUBMISSION */
+document.getElementById("forgotPasswordForm").addEventListener("submit", function(e){
+    e.preventDefault();
+
+    let username = document.getElementById("forgotUsername").value.trim();
+    let userFound = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+
+    if(userFound){
+        let existingReq = forgotRequests.find(r => r.username.toLowerCase() === username.toLowerCase());
+        if(!existingReq){
+            forgotRequests.push({
+                id: Date.now(),
+                username: userFound.username,
+                role: userFound.role,
+                time: new Date().toLocaleString()
+            });
+            saveForgotRequests();
+        }
+        alert("Password reset request sent successfully to Admin!");
+        showLoginPage();
+    } else {
+        document.getElementById("forgotPasswordError").innerText = "Username not registered in system.";
+    }
+});
+
+function logout(){
+    sessionStorage.removeItem("cmsCurrentUser");
+    document.getElementById("loginUsername").value = "";
+    document.getElementById("loginPassword").value = "";
+    checkLogin();
+}
+
+/* MANAGE USERS / STAFF */
+function openUsersModal(){
+    document.getElementById("usersModal").style.display = "block";
+    displayUsersList();
+}
+
+function closeUsersModal(){
+    document.getElementById("usersModal").style.display = "none";
+}
+
+document.getElementById("addUserForm").addEventListener("submit", function(e){
+    e.preventDefault();
+
+    let username = document.getElementById("newUsername").value.trim();
+    let password = document.getElementById("newUserPassword").value.trim();
+    let role = document.getElementById("newUserRole").value;
+
+    if(users.some(u => u.username.toLowerCase() === username.toLowerCase())){
+        alert("This username already exists. Please try another one.");
+        return;
+    }
+
+    users.push({
+        username: username,
+        password: password,
+        role: role,
+        mustChangePassword: true
+    });
+
+    saveUsers();
+    alert("New user added successfully.");
+    document.getElementById("addUserForm").reset();
+    displayUsersList();
+});
+
+function displayUsersList(){
+    let tbody = document.getElementById("usersTableBody");
+    tbody.innerHTML = "";
+
+    users.forEach((u, index) => {
+        let tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${escapeHTML(u.username)}</td>
+            <td>${escapeHTML(u.role)}</td>
+            <td>${u.mustChangePassword ? 'Yes (First Login Pending)' : 'No'}</td>
+            <td>
+                <button class="btn-warning" onclick="resetUserPassword(${index})">Reset Password</button>
+                ${u.username.toLowerCase() === 'admin' ? '' : `<button class="btn-danger" onclick="deleteUser(${index})">Delete</button>`}
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function resetUserPassword(index){
+    let newDefaultPass = prompt("Enter new password for " + users[index].username + ":", "123456");
+    if(newDefaultPass && newDefaultPass.trim() !== ""){
+        users[index].password = newDefaultPass.trim();
+        users[index].mustChangePassword = true;
+        saveUsers();
+        alert("Password for " + users[index].username + " has been reset successfully to: " + newDefaultPass.trim());
+        displayUsersList();
+    }
+}
+
+function deleteUser(index){
+    let loggedUser = getLoggedInUser();
+    let targetUser = users[index];
+
+    if(!targetUser) return;
+
+    if(loggedUser && loggedUser.username.toLowerCase() === "admin"){
+        if(confirm("Are you sure you want to remove this user?")){
+            users.splice(index, 1);
+            saveUsers();
+            displayUsersList();
+        }
+    } else {
+        let reason = prompt("Enter reason for user deletion request:");
+        if(!reason) return;
+
+        deleteRequests.push({
+            id: Date.now(),
+            type: "User",
+            targetUsername: targetUser.username,
+            itemDetails: "User: " + targetUser.username + " (" + targetUser.role + ")",
+            requestedBy: loggedUser ? loggedUser.username : "Unknown",
+            reason: reason,
+            time: new Date().toLocaleString()
+        });
+
+        saveDeleteRequests();
+        renderApprovals();
+        alert("Delete request for user sent to Main Admin for approval.");
+    }
+}
+
+/* RENDER APPROVALS & ADMIN ACTIONS (FOR DELETE & FORGOT PASSWORD) */
+function renderApprovals() {
+    let loggedUser = getLoggedInUser();
+    let approvalSection = document.getElementById("approvalSection");
+
+    if (!loggedUser || loggedUser.username.toLowerCase() !== "admin") {
+        approvalSection.style.display = "none";
+        return;
+    }
+
+    let totalPendingCount = deleteRequests.length + forgotRequests.length;
+    if(totalPendingCount === 0){
+        approvalSection.style.display = "none";
+        return;
+    }
+
+    approvalSection.style.display = "block";
+    document.getElementById("requestBadge").innerText = totalPendingCount;
+
+    let html = "";
+    
+    // Render Delete Requests
+    deleteRequests.forEach(req => {
+        html += `
+            <tr>
+                <td><b>${escapeHTML(req.type)}</b></td>
+                <td>${escapeHTML(req.itemDetails)}</td>
+                <td>${escapeHTML(req.requestedBy)}</td>
+                <td>Reason: ${escapeHTML(req.reason)}</td>
+                <td><small>${escapeHTML(req.time)}</small></td>
+                <td>
+                    <button onclick="approveRequest(${req.id})" class="btn-success" style="padding:5px 10px;">Approve</button>
+                    <button onclick="rejectRequest(${req.id})" class="btn-danger" style="padding:5px 10px;">Reject</button>
+                </td>
+            </tr>
+        `;
+    });
+
+    // Render Forgot Password Requests
+    forgotRequests.forEach(req => {
+        html += `
+            <tr>
+                <td><b>Forgot Password</b></td>
+                <td>User: ${escapeHTML(req.username)} (${escapeHTML(req.role)})</td>
+                <td>${escapeHTML(req.username)}</td>
+                <td>Password Reset Requested</td>
+                <td><small>${escapeHTML(req.time)}</small></td>
+                <td>
+                    <button onclick="fulfillForgotRequest(${req.id}, '${escapeHTML(req.username)}')" class="btn-success" style="padding:5px 10px;">Reset Password</button>
+                    <button onclick="dismissForgotRequest(${req.id})" class="btn-danger" style="padding:5px 10px;">Dismiss</button>
+                </td>
+            </tr>
+        `;
+    });
+
+    document.getElementById("approvalList").innerHTML = html;
+}
+
+function fulfillForgotRequest(reqId, username){
+    let newDefaultPass = prompt("Enter new temporary password for " + username + ":", "123456");
+    if(newDefaultPass && newDefaultPass.trim() !== ""){
+        let uIndex = users.findIndex(u => u.username.toLowerCase() === username.toLowerCase());
+        if(uIndex !== -1){
+            users[uIndex].password = newDefaultPass.trim();
+            users[uIndex].mustChangePassword = true;
+            saveUsers();
+        }
+        forgotRequests = forgotRequests.filter(r => r.id !== reqId);
+        saveForgotRequests();
+        renderApprovals();
+        alert("Password reset successfully for " + username + "! Temporary Password: " + newDefaultPass.trim());
+    }
+}
+
+function dismissForgotRequest(reqId){
+    forgotRequests = forgotRequests.filter(r => r.id !== reqId);
+    saveForgotRequests();
+    renderApprovals();
+    alert("Password reset request dismissed.");
+}
+
+function approveRequest(reqId) {
+    let reqIndex = deleteRequests.findIndex(r => r.id === reqId);
+    if (reqIndex === -1) return;
+
+    let req = deleteRequests[reqIndex];
+
+    if (req.type === "Transaction / Application") {
+        let custIndex = customers.findIndex(c => c.applicationNumber === req.appNo);
+        if (custIndex !== -1) {
+            let appNo = customers[custIndex].applicationNumber;
+            customers.splice(custIndex, 1);
+            localStorage.setItem("customers", JSON.stringify(customers));
+            deleteDocumentsForApplication(appNo);
+        }
+    } else if (req.type === "User") {
+        let uIndex = users.findIndex(u => u.username.toLowerCase() === req.targetUsername.toLowerCase());
+        if (uIndex !== -1) {
+            users.splice(uIndex, 1);
+            saveUsers();
+            if (document.getElementById("usersModal").style.display === "block") {
+                displayUsersList();
+            }
+        }
+    } else if (req.type === "Document") {
+        if(req.docId) {
+            deleteDocumentById(req.docId);
+        }
+    }
+
+    deleteRequests.splice(reqIndex, 1);
+    saveDeleteRequests();
+
+    updateDashboard();
+    displayApplications();
+    renderApprovals();
+    alert("Request approved and item deleted.");
+}
+
+function rejectRequest(reqId) {
+    deleteRequests = deleteRequests.filter(r => r.id !== reqId);
+    saveDeleteRequests();
+    renderApprovals();
+    alert("Delete request rejected.");
+}
+
+/* CUSTOMER DATA */
+let customers = JSON.parse(localStorage.getItem("customers")) || [];
+let currentDetailsIndex = null;
+let currentDocumentApplication = null;
+
+function generateApplicationNumber(){
+    let year = new Date().getFullYear();
+    let maxNumber = 0;
+
+    customers.forEach(function(customer){
+        if(customer.applicationNumber){
+            let parts = customer.applicationNumber.split("-");
+            let number = parseInt(parts[2]);
+            if(!isNaN(number) && number > maxNumber){
+                maxNumber = number;
+            }
+        }
+    });
+
+    return "CMS-" + year + "-" + String(maxNumber + 1).padStart(4,"0");
+}
+
+function openCustomerForm(){
+    document.getElementById("customerModal").style.display = "block";
+    document.getElementById("customerForm").reset();
+    document.getElementById("editIndex").value = "";
+    document.getElementById("formTitle").innerText = "New Customer";
+    document.getElementById("applicationNumber").value = generateApplicationNumber();
+    document.getElementById("applicationDate").value = new Date().toISOString().split("T")[0];
+}
+
+function closeCustomerModal(){
+    document.getElementById("customerModal").style.display = "none";
+}
+
+document.getElementById("serviceCharge").addEventListener("input",calculateDue);
+document.getElementById("amountReceived").addEventListener("input",calculateDue);
+
+function calculateDue(){
+    let charge = parseFloat(document.getElementById("serviceCharge").value) || 0;
+    let received = parseFloat(document.getElementById("amountReceived").value) || 0;
+    let due = charge - received;
+    if(due < 0){ due = 0; }
+    document.getElementById("dueAmount").value = due;
+}
+
+document.getElementById("customerForm").addEventListener("submit",function(e){
+    e.preventDefault();
+
+    let mobile = document.getElementById("mobile").value.trim();
+    let aadhaar = document.getElementById("aadhaar").value.trim();
+
+    if(!/^\d{10}$/.test(mobile)){
+        alert("Mobile number must be exactly 10 digits.");
+        return;
+    }
+
+    if(aadhaar !== "" && !/^\d{12}$/.test(aadhaar)){
+        alert("Aadhaar number must be exactly 12 digits.");
+        return;
+    }
+
+    calculateDue();
+
+    let loggedUser = getLoggedInUser();
+    let currentUsername = loggedUser ? loggedUser.username + " (" + loggedUser.role + ")" : "Unknown";
+    let currentTimestamp = new Date().toLocaleString();
+
+    let editIndex = document.getElementById("editIndex").value;
+    let existingCustomer = editIndex !== "" ? customers[parseInt(editIndex)] : {};
+
+    let certSelect = document.getElementById("certificateType");
+    let selectedCerts = Array.from(certSelect.selectedOptions).map(option => option.value);
+    let certificateTypeString = selectedCerts.join(", ");
+
+    let customer = {
+        applicationNumber: document.getElementById("applicationNumber").value,
+        customerName: document.getElementById("customerName").value.trim(),
+        fatherName: document.getElementById("fatherName").value.trim(),
+        mobile: mobile,
+        aadhaar: aadhaar,
+        dob: document.getElementById("dob").value,
+        gender: document.getElementById("gender").value,
+        district: document.getElementById("district").value.trim(),
+        block: document.getElementById("block").value.trim(),
+        panchayat: document.getElementById("panchayat").value.trim(),
+        village: document.getElementById("village").value.trim(),
+        certificateType: certificateTypeString,
+        applicationDate: document.getElementById("applicationDate").value,
+        serviceCharge: document.getElementById("serviceCharge").value,
+        amountReceived: document.getElementById("amountReceived").value,
+        dueAmount: document.getElementById("dueAmount").value,
+        paymentMode: document.getElementById("paymentMode").value,
+        status: document.getElementById("status").value,
+        certificateNumber: document.getElementById("certificateNumber").value.trim(),
+        approvalDate: document.getElementById("approvalDate").value,
+        deliveryDate: document.getElementById("deliveryDate").value,
+        address: document.getElementById("address").value.trim(),
+        remarks: document.getElementById("remarks").value.trim(),
+        createdAt: existingCustomer.createdAt || new Date().toISOString(),
+        lastModifiedBy: currentUsername,
+        lastModifiedAt: currentTimestamp
+    };
+
+    let isNew = (editIndex === "");
+
+    if(isNew){
+        customers.push(customer);
+        alert("Customer successfully saved.");
+    }else{
+        customers[parseInt(editIndex)] = customer;
+        alert("Customer successfully updated.");
+    }
+
+    localStorage.setItem("customers", JSON.stringify(customers));
+    closeCustomerModal();
+    updateDashboard();
+    displayApplications();
+});
+
+function updateDashboard(){
+    document.getElementById("totalCustomers").innerText = customers.length;
+    document.getElementById("totalApplications").innerText = customers.length;
+    let pending = customers.filter(c => c.status === "Pending").length;
+    let approved = customers.filter(c => c.status === "Approved").length;
+    document.getElementById("pendingApplications").innerText = pending;
+    document.getElementById("approvedApplications").innerText = approved;
+}
+
+function escapeHTML(value){
+    if(value === null || value === undefined){ return ""; }
+    return String(value)
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+}
+
+function displayApplications(){
+    let search = document.getElementById("applicationSearch").value.toLowerCase().trim();
+    let tbody = document.getElementById("applicationTableBody");
+    tbody.innerHTML = "";
+
+    customers.forEach(function(customer,index){
+        let text = (
+            customer.applicationNumber + " " + customer.customerName + " " +
+            customer.mobile + " " + customer.certificateType + " " + (customer.lastModifiedBy || "")
+        ).toLowerCase();
+
+        if(search !== "" && !text.includes(search)){ return; }
+
+        let row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${escapeHTML(customer.applicationNumber)}</td>
+            <td>${escapeHTML(customer.customerName)}</td>
+            <td>${escapeHTML(customer.mobile)}</td>
+            <td>${escapeHTML(customer.certificateType)}</td>
+            <td>${escapeHTML(customer.applicationDate)}</td>
+            <td>
+                <select onchange="changeStatus(${index}, this.value)">
+                    <option ${customer.status === "Pending" ? "selected" : ""}>Pending</option>
+                    <option ${customer.status === "Applied" ? "selected" : ""}>Applied</option>
+                    <option ${customer.status === "Approved" ? "selected" : ""}>Approved</option>
+                    <option ${customer.status === "Rejected" ? "selected" : ""}>Rejected</option>
+                </select>
+            </td>
+            <td>${escapeHTML(customer.certificateNumber || "-")}</td>
+            <td>₹${escapeHTML(customer.amountReceived || "0")}</td>
+            <td>₹${escapeHTML(customer.dueAmount || "0")}</td>
+            <td><small><b>${escapeHTML(customer.lastModifiedBy || "System")}</b><br>${escapeHTML(customer.lastModifiedAt || "")}</small></td>
+            <td><button class="btn-info" onclick="openDocuments(${index})">📁 Documents</button></td>
+            <td>
+                <button class="btn-info" onclick="viewDetails(${index})">View</button>
+                <button class="btn-warning" onclick="editCustomer(${index})">Edit</button>
+                <button class="btn-danger" onclick="deleteCustomer(${index})">Delete</button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function sendWhatsAppMsg(index){
+    let c = customers[index];
+    if(!c || !c.mobile){ alert("Customer mobile number not found."); return; }
+
+    let message = "";
+    if(c.status === "Applied"){
+        message = `Hello ${c.customerName}, your application ${c.applicationNumber} has been successfully applied at Online Solutions Point. Thank you!`;
+    } else if(c.status === "Approved"){
+        message = `Hello ${c.customerName}, your application ${c.applicationNumber} for ${c.certificateType} has been APPROVED at Online Solutions Point. Thank you!`;
+    } else if(c.status === "Rejected"){
+        message = `Hello ${c.customerName}, your application ${c.applicationNumber} for ${c.certificateType} has been REJECTED at Online Solutions Point. Please contact us for details.`;
+    } else {
+        message = `Hello ${c.customerName}, your application ${c.applicationNumber} is currently ${c.status} at Online Solutions Point. Thank you!`;
+    }
+
+    let encodedMsg = encodeURIComponent(message);
+    let mobileNum = c.mobile.replace(/\D/g, ''); 
+    if(mobileNum.length === 10){
+        mobileNum = "91" + mobileNum;
+    }
+
+    let url = `https://wa.me/${mobileNum}?text=${encodedMsg}`;
+    window.open(url, '_blank');
+}
+
+function changeStatus(index,newStatus){
+    let loggedUser = getLoggedInUser();
+    customers[index].status = newStatus;
+    customers[index].lastModifiedBy = loggedUser ? loggedUser.username + " (" + loggedUser.role + ")" : "Unknown";
+    customers[index].lastModifiedAt = new Date().toLocaleString();
+
+    if(newStatus === "Approved" && !customers[index].approvalDate){
+        customers[index].approvalDate = new Date().toISOString().split("T")[0];
+    }
+    localStorage.setItem("customers", JSON.stringify(customers));
+    updateDashboard();
+    displayApplications();
+}
+
+function editCustomer(index){
+    let c = customers[index];
+    document.getElementById("customerModal").style.display = "block";
+    document.getElementById("formTitle").innerText = "Edit Customer";
+    document.getElementById("editIndex").value = index;
+
+    let fields = [
+        "applicationNumber", "customerName", "fatherName", "mobile", "aadhaar",
+        "dob", "gender", "district", "block", "panchayat", "village",
+        "applicationDate", "serviceCharge", "amountReceived",
+        "dueAmount", "paymentMode", "status", "certificateNumber", "approvalDate",
+        "deliveryDate", "address", "remarks"
+    ];
+
+    fields.forEach(function(field){
+        let element = document.getElementById(field);
+        if(element){ element.value = c[field] || ""; }
+    });
+
+    let certSelect = document.getElementById("certificateType");
+    let selectedCerts = c.certificateType ? c.certificateType.split(", ") : [];
+    Array.from(certSelect.options).forEach(option => {
+        option.selected = selectedCerts.includes(option.value);
+    });
+}
+
+/* DELETE TRANSACTION / APPLICATION FUNCTIONALITY */
+function deleteCustomer(index){
+    let loggedUser = getLoggedInUser();
+    let targetCustomer = customers[index];
+
+    if(!targetCustomer) return;
+
+    if(loggedUser && loggedUser.username.toLowerCase() === "admin"){
+        if(!confirm("Are you sure you want to delete this customer permanently?")){ return; }
+        let applicationNumber = targetCustomer.applicationNumber;
+        customers.splice(index,1);
+        localStorage.setItem("customers", JSON.stringify(customers));
+        deleteDocumentsForApplication(applicationNumber);
+        updateDashboard();
+        displayApplications();
+        alert("Customer deleted successfully.");
+    } 
+    else {
+        let reason = prompt("Enter reason for deletion request:");
+        if(!reason) return;
+
+        deleteRequests.push({
+            id: Date.now(),
+            type: "Transaction / Application",
+            appNo: targetCustomer.applicationNumber,
+            itemDetails: targetCustomer.applicationNumber + " - " + targetCustomer.customerName,
+            requestedBy: loggedUser ? loggedUser.username : "Unknown",
+            reason: reason,
+            time: new Date().toLocaleString()
+        });
+
+        saveDeleteRequests();
+        renderApprovals();
+        alert("Delete request sent to Main Admin for approval.");
+    }
+}
+
+function openSearchModal(){
+    document.getElementById("searchModal").style.display = "block";
+    document.getElementById("customerSearch").value = "";
+    searchCustomers();
+}
+
+function closeSearchModal(){
+    document.getElementById("searchModal").style.display = "none";
+}
+
+function searchCustomers(){
+    let search = document.getElementById("customerSearch").value.toLowerCase().trim();
+    let tbody = document.getElementById("searchResults");
+    tbody.innerHTML = "";
+
+    customers.forEach(function(c,index){
+        let text = (
+            c.applicationNumber + " " + c.customerName + " " +
+            c.mobile + " " + c.certificateType
+        ).toLowerCase();
+
+        if(search === "" || text.includes(search)){
+            let row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${escapeHTML(c.applicationNumber)}</td>
+                <td>${escapeHTML(c.customerName)}</td>
+                <td>${escapeHTML(c.mobile)}</td>
+                <td>${escapeHTML(c.certificateType)}</td>
+                <td>
+                    <button class="btn-info" onclick="viewDetails(${index}); closeSearchModal();">View</button>
+                    <button class="btn-warning" onclick="editCustomer(${index}); closeSearchModal();">Edit</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        }
+    });
+}
+
+function viewDetails(index){
+    currentDetailsIndex = index;
+    let c = customers[index];
+
+    document.getElementById("detailsModal").style.display = "block";
+    document.getElementById("customerDetails").innerHTML = `
+        <div class="details-grid">
+            <div class="detail-box"><strong>Application Number</strong>${escapeHTML(c.applicationNumber)}</div>
+            <div class="detail-box"><strong>Customer Name</strong>${escapeHTML(c.customerName)}</div>
+            <div class="detail-box"><strong>Father / Husband Name</strong>${escapeHTML(c.fatherName)}</div>
+            <div class="detail-box"><strong>Mobile</strong>${escapeHTML(c.mobile)}</div>
+            <div class="detail-box"><strong>Date of Birth</strong>${escapeHTML(c.dob)}</div>
+            <div class="detail-box"><strong>Gender</strong>${escapeHTML(c.gender)}</div>
+            <div class="detail-box"><strong>Certificate Type</strong>${escapeHTML(c.certificateType)}</div>
+            <div class="detail-box"><strong>District</strong>${escapeHTML(c.district)}</div>
+            <div class="detail-box"><strong>Block</strong>${escapeHTML(c.block)}</div>
+            <div class="detail-box"><strong>Panchayat</strong>${escapeHTML(c.panchayat)}</div>
+            <div class="detail-box"><strong>Village</strong>${escapeHTML(c.village)}</div>
+            <div class="detail-box"><strong>Application Date</strong>${escapeHTML(c.applicationDate)}</div>
+            <div class="detail-box"><strong>Status</strong>${escapeHTML(c.status)}</div>
+            <div class="detail-box"><strong>Certificate Number</strong>${escapeHTML(c.certificateNumber)}</div>
+            <div class="detail-box"><strong>Approval Date</strong>${escapeHTML(c.approvalDate)}</div>
+            <div class="detail-box"><strong>Delivery Date</strong>${escapeHTML(c.deliveryDate)}</div>
+            <div class="detail-box"><strong>Service Charge</strong>₹${escapeHTML(c.serviceCharge || "0")}</div>
+            <div class="detail-box"><strong>Amount Received</strong>₹${escapeHTML(c.amountReceived || "0")}</div>
+            <div class="detail-box"><strong>Due Amount</strong>₹${escapeHTML(c.dueAmount || "0")}</div>
+            <div class="detail-box"><strong>Payment Mode</strong>${escapeHTML(c.paymentMode)}</div>
+            <div class="detail-box"><strong>Last Modified By</strong>${escapeHTML(c.lastModifiedBy || "N/A")}</div>
+            <div class="detail-box"><strong>Last Modified Time</strong>${escapeHTML(c.lastModifiedAt || "N/A")}</div>
+            <div class="detail-box full"><strong>Address</strong>${escapeHTML(c.address)}</div>
+            <div class="detail-box full"><strong>Remarks</strong>${escapeHTML(c.remarks)}</div>
+        </div>
+    `;
+}
+
+function closeDetailsModal(){
+    document.getElementById("detailsModal").style.display = "none";
+}
+
+/* INDEXED DB & DOCUMENTS */
+let db;
+const DB_NAME = "CertificateManagementDB";
+const DB_VERSION = 1;
+const STORE_NAME = "documents";
+
+function openDatabase(){
+    return new Promise(function(resolve,reject){
+        let request = indexedDB.open(DB_NAME, DB_VERSION);
+        request.onupgradeneeded = function(event){
+            db = event.target.result;
+            if(!db.objectStoreNames.contains(STORE_NAME)){
+                let store = db.createObjectStore(STORE_NAME, { keyPath:"id", autoIncrement:true });
+                store.createIndex("applicationNumber", "applicationNumber", { unique:false });
+            }
+        };
+        request.onsuccess = function(event){
+            db = event.target.result;
+            resolve(db);
+        };
+        request.onerror = function(){ reject(request.error); };
+    });
+}
+
+async function openDocuments(index){
+    let customer = customers[index];
+    currentDocumentApplication = customer.applicationNumber;
+    document.getElementById("documentsModal").style.display = "block";
+    document.getElementById("documentType").value = "";
+    document.getElementById("documentFile").value = "";
+    document.getElementById("documentApplicationInfo").innerHTML = `
+        <div class="detail-box">
+            <strong>Application Number</strong> ${escapeHTML(customer.applicationNumber)}<br><br>
+            <strong>Customer Name</strong> ${escapeHTML(customer.customerName)}
+        </div>
+    `;
+    try{
+        await openDatabase();
+        loadDocuments();
+    }catch(error){
+        alert("Document database could not be opened.");
+    }
+}
+
+function closeDocumentsModal(){
+    document.getElementById("documentsModal").style.display = "none";
+}
+
+async function uploadDocument(){
+    let type = document.getElementById("documentType").value;
+    let fileInput = document.getElementById("documentFile");
+    let file = fileInput.files[0];
+
+    if(!type){ alert("Please select Document Type."); return; }
+    if(!file){ alert("Please select a file."); return; }
+    if(file.size > 2 * 1024 * 1024){ alert("File size must be 2 MB or less."); return; }
+
+    let allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
+    if(!allowedTypes.includes(file.type)){ alert("Only JPG, JPEG, PNG, and PDF format files are allowed."); return; }
+
+    let reader = new FileReader();
+    reader.onload = function(event){
+        let documentData = {
+            applicationNumber: currentDocumentApplication,
+            documentType: type,
+            fileName: file.name,
+            fileType: file.type,
+            fileSize: file.size,
+            dataUrl: event.target.result,
+            uploadedAt: new Date().toISOString()
+        };
+
+        let transaction = db.transaction([STORE_NAME], "readwrite");
+        let store = transaction.objectStore(STORE_NAME);
+        store.add(documentData);
+
+        transaction.oncomplete = function(){
+            alert("Document successfully uploaded.");
+            fileInput.value = "";
+            document.getElementById("documentType").value = "";
+            loadDocuments();
+        };
+    };
+    reader.readAsDataURL(file);
+}
+
+async function loadDocuments(){
+    if(!db){ await openDatabase(); }
+    let transaction = db.transaction([STORE_NAME], "readonly");
+    let store = transaction.objectStore(STORE_NAME);
+    let index = store.index("applicationNumber");
+    let request = index.getAll(currentDocumentApplication);
+
+    request.onsuccess = function(){
+        let documents = request.result;
+        let container = document.getElementById("documentsList");
+        container.innerHTML = "";
+
+        if(documents.length === 0){
+            container.innerHTML = `<div class="detail-box">No documents uploaded yet.</div>`;
+            return;
+        }
+
+        documents.forEach(function(doc){
+            let div = document.createElement("div");
+            div.className = "document-item";
+            let sizeKB = (doc.fileSize / 1024).toFixed(1);
+            div.innerHTML = `
+                <div class="document-info">
+                    <strong>${escapeHTML(doc.documentType)}</strong>
+                    <small>${escapeHTML(doc.fileName)} | ${sizeKB} KB</small>
+                </div>
+                <div class="document-actions">
+                    <button class="btn-info" onclick="viewDocument(${doc.id})">👁 View</button>
+                    <button class="btn-danger" onclick="deleteDocument(${doc.id}, '${escapeHTML(doc.documentType)}')">🗑 Delete</button>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    };
+}
+
+function viewDocument(id){
+    let transaction = db.transaction([STORE_NAME], "readonly");
+    let store = transaction.objectStore(STORE_NAME);
+    let request = store.get(id);
+
+    request.onsuccess = function(){
+        let doc = request.result;
+        if(!doc){ alert("Document not found."); return; }
+        let newWindow = window.open();
+        if(!newWindow){ alert("Popup blocked. Please allow popups in your browser."); return; }
+
+        if(doc.fileType === "application/pdf"){
+            newWindow.document.write(`<iframe src="${doc.dataUrl}" style="width:100%;height:100vh;border:0;"></iframe>`);
+        }else{
+            newWindow.document.write(`<img src="${doc.dataUrl}" style="max-width:100%;max-height:100vh;">`);
+        }
+    };
+}
+
+function deleteDocument(id, docType){
+    let loggedUser = getLoggedInUser();
+
+    if(loggedUser && loggedUser.username.toLowerCase() === "admin"){
+        if(!confirm("Are you sure you want to delete this document?")){ return; }
+        deleteDocumentById(id);
+    } else {
+        let reason = prompt("Enter reason for document deletion request:");
+        if(!reason) return;
+
+        deleteRequests.push({
+            id: Date.now(),
+            type: "Document",
+            docId: id,
+            itemDetails: docType + " (App: " + currentDocumentApplication + ")",
+            requestedBy: loggedUser ? loggedUser.username : "Unknown",
+            reason: reason,
+            time: new Date().toLocaleString()
+        });
+
+        saveDeleteRequests();
+        renderApprovals();
+        alert("Delete request for document sent to Main Admin for approval.");
+    }
+}
+
+function deleteDocumentById(id) {
+    let transaction = db.transaction([STORE_NAME], "readwrite");
+    let store = transaction.objectStore(STORE_NAME);
+    store.delete(id);
+    transaction.oncomplete = function(){ 
+        if(document.getElementById("documentsModal").style.display === "block"){
+            loadDocuments(); 
+        }
+    };
+}
+
+async function deleteDocumentsForApplication(applicationNumber){
+    try{
+        await openDatabase();
+        let transaction = db.transaction([STORE_NAME], "readwrite");
+        let store = transaction.objectStore(STORE_NAME);
+        let index = store.index("applicationNumber");
+        let request = index.getAllKeys(applicationNumber);
+
+        request.onsuccess = function(){
+            request.result.forEach(function(key){ store.delete(key); });
+        };
+    }catch(error){ console.log(error); }
+}
+
+function printApplication(){
+    if(currentDetailsIndex === null){ return; }
+    let c = customers[currentDetailsIndex];
+    let w = window.open("", "_blank");
+    w.document.write(`
+        <html><head><title>Certificate Application</title>
+        <style>body{font-family:Arial;padding:30px;} h1{text-align:center;} table{width:100%;border-collapse:collapse;} td{border:1px solid #333;padding:10px;} .label{font-weight:bold;width:30%;}</style>
+        </head><body>
+            <h1>Certificate Application</h1>
+            <h3>Online Solutions Point</h3>
+            <table>
+                <tr><td class="label">Application Number</td><td>${escapeHTML(c.applicationNumber)}</td></tr>
+                <tr><td class="label">Customer Name</td><td>${escapeHTML(c.customerName)}</td></tr>
+                <tr><td class="label">Father / Husband Name</td><td>${escapeHTML(c.fatherName)}</td></tr>
+                <tr><td class="label">Mobile</td><td>${escapeHTML(c.mobile)}</td></tr>
+                <tr><td class="label">Certificate Type</td><td>${escapeHTML(c.certificateType)}</td></tr>
+                <tr><td class="label">District</td><td>${escapeHTML(c.district)}</td></tr>
+                <tr><td class="label">Block</td><td>${escapeHTML(c.block)}</td></tr>
+                <tr><td class="label">Application Date</td><td>${escapeHTML(c.applicationDate)}</td></tr>
+                <tr><td class="label">Status</td><td>${escapeHTML(c.status)}</td></tr>
+            </table><br><br>Signature: ______________________
+        </body></html>
+    `);
+    w.document.close();
+    w.print();
+}
+
+function printReceipt(){
+    if(currentDetailsIndex === null){ return; }
+    let c = customers[currentDetailsIndex];
+    let w = window.open("", "_blank");
+    w.document.write(`
+        <html><head><title>Payment Receipt</title>
+        <style>body{font-family:Arial;padding:30px;} .receipt{max-width:500px;margin:auto;border:2px solid #222;padding:25px;} h2{text-align:center;} .row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px dashed #999;}</style>
+        </head><body>
+            <div class="receipt">
+                <h2>PAYMENT RECEIPT</h2>
+                <p style="text-align:center;">Online Solutions Point</p><br>
+                <div class="row"><strong>Application No.</strong><span>${escapeHTML(c.applicationNumber)}</span></div>
+                <div class="row"><strong>Customer</strong><span>${escapeHTML(c.customerName)}</span></div>
+                <div class="row"><strong>Certificate</strong><span>${escapeHTML(c.certificateType)}</span></div>
+                <div class="row"><strong>Received</strong><span>₹${escapeHTML(c.amountReceived || "0")}</span></div>
+                <div class="row"><strong>Due</strong><span>₹${escapeHTML(c.dueAmount || "0")}</span></div>
+                <div class="row"><strong>Payment Mode</strong><span>${escapeHTML(c.paymentMode)}</span></div>
+                <br><br>Signature: __________________
+            </div>
+        </body></html>
+    `);
+    w.document.close();
+    w.print();
+}
+
+window.onclick = function(event){
+    if(event.target === document.getElementById("customerModal")){ closeCustomerModal(); }
+    if(event.target === document.getElementById("searchModal")){ closeSearchModal(); }
+    if(event.target === document.getElementById("detailsModal")){ closeDetailsModal(); }
+    if(event.target === document.getElementById("documentsModal")){ closeDocumentsModal(); }
+    if(event.target === document.getElementById("usersModal")){ closeUsersModal(); }
+};
+
+/* INITIALIZE */
+openDatabase().catch(error => console.log(error));
+checkLogin();
+updateDashboard();
+displayApplications();
+
+</script>
+</body>
+</html>
