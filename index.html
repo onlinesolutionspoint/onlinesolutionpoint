@@ -363,7 +363,7 @@ th{background:#eef3f8;}
 </div>
 
 <script>
-    // === FIREBASE CONFIGURATION (Direct from your project) ===
+    // === FIREBASE CONFIGURATION ===
     const firebaseConfig = {
         databaseURL: "https://certificateapp-9e64a-default-rtdb.asia-southeast1.firebasedatabase.app"
     };
@@ -373,6 +373,7 @@ th{background:#eef3f8;}
 
     let customersData = {};
     let usersData = {};
+    let deleteRequestsData = {};
     let forgotRequestsData = {};
 
     let currentDetailsKey = null;
@@ -394,6 +395,11 @@ th{background:#eef3f8;}
             usersData = val;
         }
         checkLogin();
+    });
+
+    db.ref('deleteRequests').on('value', (snapshot) => {
+        deleteRequestsData = snapshot.val() || {};
+        renderApprovals();
     });
 
     db.ref('forgotRequests').on('value', (snapshot) => {
@@ -593,8 +599,28 @@ th{background:#eef3f8;}
     }
 
     function deleteUser(key){
-        if(confirm("Delete this user?")){
-            db.ref('users/' + key).remove().then(() => displayUsersList());
+        let loggedUser = getLoggedInUser();
+        let targetUser = usersData[key];
+        if(!targetUser) return;
+
+        if(loggedUser && loggedUser.role === "Admin"){
+            if(confirm("Delete this user?")){
+                db.ref('users/' + key).remove().then(() => displayUsersList());
+            }
+        } else {
+            let reason = prompt("Enter reason for user deletion request:");
+            if(!reason) return;
+
+            db.ref('deleteRequests').push({
+                type: "User",
+                targetUserKey: key,
+                itemDetails: "User: " + targetUser.username + " (" + targetUser.role + ")",
+                requestedBy: loggedUser.username,
+                reason: reason,
+                time: new Date().toLocaleString()
+            }).then(() => {
+                alert("Delete request sent to Main Admin for approval.");
+            });
         }
     }
 
@@ -771,9 +797,30 @@ th{background:#eef3f8;}
         Array.from(certSelect.options).forEach(opt => { opt.selected = selectedCerts.includes(opt.value); });
     }
 
+    // STRICT DELETE TRANSACTION / APPLICATION RULE (STAFF -> REQUEST, ADMIN -> DIRECT DELETE)
     function deleteCustomer(key){
-        if(confirm("Permanently delete this customer?")){
-            db.ref('customers/' + key).remove().then(() => alert("Deleted successfully."));
+        let loggedUser = getLoggedInUser();
+        let targetCustomer = customersData[key];
+        if(!targetCustomer) return;
+
+        if(loggedUser && loggedUser.role === "Admin"){
+            if(!confirm("Are you sure you want to delete this customer permanently?")){ return; }
+            db.ref('customers/' + key).remove().then(() => alert("Customer deleted successfully."));
+        } else {
+            let reason = prompt("Enter reason for deletion request:");
+            if(!reason) return;
+
+            db.ref('deleteRequests').push({
+                type: "Transaction / Application",
+                appNo: targetCustomer.applicationNumber,
+                customerKey: key,
+                itemDetails: targetCustomer.applicationNumber + " - " + targetCustomer.customerName,
+                requestedBy: loggedUser ? loggedUser.username : "Unknown",
+                reason: reason,
+                time: new Date().toLocaleString()
+            }).then(() => {
+                alert("Delete request sent to Main Admin for approval.");
+            });
         }
     }
 
@@ -879,50 +926,110 @@ th{background:#eef3f8;}
                         <span><b>${d.docType}</b> - ${d.fileName}</span>
                         <div>
                             <button class="btn-info" onclick="window.open('${d.dataUrl}')">View</button>
-                            <button class="btn-danger" onclick="db.ref('documents/${k}').remove().then(()=>loadDocumentsFirebase('${appNo}'))">Delete</button>
+                            <button class="btn-danger" onclick="deleteDocItem('${k}', '${appNo}')">Delete</button>
                         </div>
                     </div>`;
             });
         });
     }
 
+    function deleteDocItem(docKey, appNo){
+        let loggedUser = getLoggedInUser();
+        if(loggedUser && loggedUser.role === "Admin"){
+            if(confirm("Delete this document?")){
+                db.ref('documents/' + docKey).remove().then(() => loadDocumentsFirebase(appNo));
+            }
+        } else {
+            let reason = prompt("Enter reason for document deletion request:");
+            if(!reason) return;
+            db.ref('deleteRequests').push({
+                type: "Document",
+                docKey: docKey,
+                itemDetails: "Document (App: " + appNo + ")",
+                requestedBy: loggedUser.username,
+                reason: reason,
+                time: new Date().toLocaleString()
+            }).then(() => alert("Delete request for document sent to Main Admin."));
+        }
+    }
+
+    // RENDER APPROVALS FOR ADMIN (FOR DELETION REQUESTS & FORGOT PASSWORD)
     function renderApprovals(){
         let loggedUser = getLoggedInUser();
         let sec = document.getElementById("approvalSection");
         if(!loggedUser || loggedUser.role !== "Admin"){ sec.style.display = "none"; return; }
         
+        let delKeys = Object.keys(deleteRequestsData);
         let fKeys = Object.keys(forgotRequestsData);
-        if(fKeys.length === 0){ sec.style.display = "none"; return; }
+        let totalCount = delKeys.length + fKeys.length;
+
+        if(totalCount === 0){ sec.style.display = "none"; return; }
 
         sec.style.display = "block";
-        document.getElementById("requestBadge").innerText = fKeys.length;
+        document.getElementById("requestBadge").innerText = totalCount;
         let list = document.getElementById("approvalList");
         list.innerHTML = "";
+
+        // Render Delete Requests
+        delKeys.forEach(k => {
+            let r = deleteRequestsData[k];
+            list.innerHTML += `
+                <tr>
+                    <td><b>${escapeHTML(r.type)}</b></td>
+                    <td>${escapeHTML(r.itemDetails)}</td>
+                    <td>${escapeHTML(r.requestedBy)}</td>
+                    <td>Reason: ${escapeHTML(r.reason)}</td>
+                    <td><small>${escapeHTML(r.time)}</small></td>
+                    <td>
+                        <button class="btn-success" onclick="approveDeleteRequest('${k}')" style="padding:5px 10px;">Approve</button>
+                        <button class="btn-danger" onclick="db.ref('deleteRequests/${k}').remove()" style="padding:5px 10px;">Reject</button>
+                    </td>
+                </tr>`;
+        });
+
+        // Render Forgot Password Requests
         fKeys.forEach(k => {
             let r = forgotRequestsData[k];
             list.innerHTML += `
                 <tr>
-                    <td>Forgot Password</td>
-                    <td>User: ${r.username} (${r.role})</td>
-                    <td>${r.username}</td>
+                    <td><b>Forgot Password</b></td>
+                    <td>User: ${escapeHTML(r.username)} (${escapeHTML(r.role)})</td>
+                    <td>${escapeHTML(r.username)}</td>
                     <td>Password Reset Requested</td>
-                    <td>${r.time}</td>
+                    <td><small>${escapeHTML(r.time)}</small></td>
                     <td>
-                        <button class="btn-success" onclick="resetForgot('${k}', '${r.username}')">Reset Password</button>
-                        <button class="btn-danger" onclick="db.ref('forgotRequests/${k}').remove()">Dismiss</button>
+                        <button class="btn-success" onclick="resetForgot('${k}', '${escapeHTML(r.username)}')" style="padding:5px 10px;">Reset Password</button>
+                        <button class="btn-danger" onclick="db.ref('forgotRequests/${k}').remove()" style="padding:5px 10px;">Dismiss</button>
                     </td>
                 </tr>`;
         });
     }
 
+    function approveDeleteRequest(reqKey){
+        let req = deleteRequestsData[reqKey];
+        if(!req) return;
+
+        if(req.type === "Transaction / Application" && req.customerKey){
+            db.ref('customers/' + req.customerKey).remove();
+        } else if(req.type === "User" && req.targetUserKey){
+            db.ref('users/' + req.targetUserKey).remove();
+        } else if(req.type === "Document" && req.docKey){
+            db.ref('documents/' + req.docKey).remove();
+        }
+
+        db.ref('deleteRequests/' + reqKey).remove().then(() => {
+            alert("Request approved and item deleted successfully.");
+        });
+    }
+
     function resetForgot(key, username){
-        let newPass = prompt("Enter new password for " + username + ":", "123456");
+        let newPass = prompt("Enter new temporary password for " + username + ":", "123456");
         if(newPass){
             let uKey = Object.keys(usersData).find(k => usersData[k].username.toLowerCase() === username.toLowerCase());
             if(uKey){
                 db.ref('users/' + uKey).update({ password: newPass, mustChangePassword: true }).then(() => {
                     db.ref('forgotRequests/' + key).remove();
-                    alert("Password reset successfully for " + username);
+                    alert("Password reset successfully for " + username + "! Temporary Password: " + newPass);
                 });
             }
         }
