@@ -48,6 +48,7 @@ button{border:none;padding:10px 15px;border-radius:6px;cursor:pointer;font-weigh
 .btn-danger{background:#dc3545;color:white;}
 .btn-info{background:#0dcaf0;color:#111;}
 button:hover{opacity:.85;}
+button:disabled{opacity:0.4;cursor:not-allowed !important;}
 .section{background:white;padding:20px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.08);margin-bottom:25px;}
 .section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;gap:10px;flex-wrap:wrap;}
 .search-box{padding:10px;border:1px solid #ccc;border-radius:6px;width:280px;}
@@ -55,8 +56,18 @@ button:hover{opacity:.85;}
 table{width:100%;border-collapse:collapse;min-width:1000px;}
 th,td{padding:10px;border-bottom:1px solid #ddd;text-align:left;font-size:14px;}
 th{background:#eef3f8;}
+
 .modal{display:none;position:fixed;z-index:1000;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,.55);overflow:auto;}
 .modal-content{background:white;width:95%;max-width:1000px;margin:30px auto;border-radius:10px;padding:25px;}
+#usersModal .modal-content { max-width: 750px; width: 92%; padding: 20px; overflow-x: hidden; }
+.users-table-container { width: 100%; overflow-x: hidden; }
+.users-table { width: 100% !important; min-width: 0 !important; border-collapse: collapse; table-layout: fixed; }
+.users-table th, .users-table td { padding: 8px 4px; font-size: 13px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+.users-table th:nth-child(1), .users-table td:nth-child(1) { width: 25%; }
+.users-table th:nth-child(2), .users-table td:nth-child(2) { width: 18%; }
+.users-table th:nth-child(3), .users-table td:nth-child(3) { width: 22%; text-align: center; }
+.users-table th:nth-child(4), .users-table td:nth-child(4) { width: 35%; text-align: right; }
+
 .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
 .close{font-size:28px;cursor:pointer;color:#777;}
 .form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;}
@@ -71,7 +82,12 @@ th{background:#eef3f8;}
 .document-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px;border:1px solid #ddd;border-radius:7px;margin-bottom:10px;background:#fafafa;}
 .file-upload{border:2px dashed #bbb;padding:20px;border-radius:8px;margin-top:15px;background:#fafafa;}
 @media(max-width:900px){.dashboard{grid-template-columns:repeat(2,1fr);}.form-grid{grid-template-columns:repeat(2,1fr);}}
-@media(max-width:600px){.dashboard{grid-template-columns:1fr 1fr;gap:10px;}.form-grid{grid-template-columns:1fr;}.details-grid{grid-template-columns:1fr;}}
+@media(max-width:600px){
+    .dashboard{grid-template-columns:1fr 1fr;gap:10px;}
+    .form-grid{grid-template-columns:1fr;}
+    .details-grid{grid-template-columns:1fr;}
+    .users-table th, .users-table td { font-size: 11px; padding: 6px 2px; }
+}
 </style>
 </head>
 
@@ -181,7 +197,7 @@ th{background:#eef3f8;}
         </div>
 
         <div class="actions">
-            <button class="btn-primary" onclick="openCustomerForm()">+ New Customer</button>
+            <button class="btn-primary" id="newCustomerBtn" onclick="openCustomerForm()">+ New Customer</button>
             <button class="btn-success" onclick="openSearchModal()">🔍 Search Customer</button>
             <button class="btn-info" onclick="displayApplications()">📋 Applications</button>
         </div>
@@ -223,24 +239,38 @@ th{background:#eef3f8;}
 
 <!-- USER / STAFF MODAL -->
 <div class="modal" id="usersModal">
-    <div class="modal-content" style="max-width:800px;">
+    <div class="modal-content">
         <div class="modal-header">
             <h2>Manage Staff & Users</h2>
             <span class="close" onclick="closeUsersModal()">&times;</span>
         </div>
-        <form id="addUserForm" style="margin-bottom:25px; padding:15px; background:#f7f8fa; border-radius:8px;">
-            <h3 style="margin-bottom:10px; font-size:16px;">Add New User / Staff</h3>
+        <form id="addUserForm" style="margin-bottom:20px; padding:15px; background:#f7f8fa; border-radius:8px;">
+            <h3 style="margin-bottom:10px; font-size:15px;">Add New User / Staff / Viewer</h3>
             <div class="form-grid">
                 <div class="form-group"><label>Username *</label><input type="text" id="newUsername" required></div>
                 <div class="form-group"><label>Default Password *</label><input type="text" id="newUserPassword" required></div>
-                <div class="form-group"><label>Role</label><select id="newUserRole"><option value="Staff">Staff</option><option value="Admin">Admin</option></select></div>
+                <div class="form-group">
+                    <label>Role</label>
+                    <select id="newUserRole">
+                        <option value="Staff">Staff</option>
+                        <option value="Viewer">Viewer (Read Only)</option>
+                        <option value="Admin">Admin</option>
+                    </select>
+                </div>
             </div>
             <button type="submit" class="btn-primary" style="margin-top:12px;">+ Add User</button>
         </form>
         <h3>Existing Users</h3><br>
-        <div class="table-container">
-            <table>
-                <thead><tr><th>Username</th><th>Role</th><th>First Login Pending?</th><th>Action</th></tr></thead>
+        <div class="users-table-container">
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th style="text-align:center;">First Login Pending?</th>
+                        <th style="text-align:right;">Action</th>
+                    </tr>
+                </thead>
                 <tbody id="usersTableBody"></tbody>
             </table>
         </div>
@@ -262,11 +292,7 @@ th{background:#eef3f8;}
                 <div class="form-group"><label>Father / Husband Name</label><input type="text" id="fatherName"></div>
                 <div class="form-group"><label>Mobile Number *</label><input type="text" id="mobile" maxlength="10" required></div>
                 <div class="form-group"><label>Aadhaar Number</label><input type="text" id="aadhaar" maxlength="12"></div>
-                <div class="form-group"><label>Date of Birth</label><input type="date" id="dob"></div>
-                <div class="form-group"><label>Gender</label><select id="gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div>
                 <div class="form-group"><label>District</label><input type="text" id="district"></div>
-                <div class="form-group"><label>Block</label><input type="text" id="block"></div>
-                <div class="form-group"><label>Panchayat</label><input type="text" id="panchayat"></div>
                 <div class="form-group"><label>Village</label><input type="text" id="village"></div>
                 <div class="form-group">
                     <label>Certificate Type *</label>
@@ -281,15 +307,11 @@ th{background:#eef3f8;}
                 <div class="form-group"><label>Amount Received</label><input type="number" id="amountReceived" min="0"></div>
                 <div class="form-group"><label>Due Amount</label><input type="number" id="dueAmount" readonly></div>
                 <div class="form-group"><label>Payment Mode</label><select id="paymentMode"><option value="">Select</option><option>Cash</option><option>UPI</option><option>Bank Transfer</option><option>Other</option></select></div>
-                <div class="form-group"><label>Status</label><select id="status"><option>Pending</option><option>Applied</option><option>Approved</option><option>Rejected</option></select></div>
-                <div class="form-group"><label>Certificate Number</label><input type="text" id="certificateNumber"></div>
-                <div class="form-group"><label>Approval Date</label><input type="date" id="approvalDate"></div>
                 <div class="form-group"><label>Delivery Date</label><input type="date" id="deliveryDate"></div>
-                <div class="form-group full"><label>Full Address</label><textarea id="address"></textarea></div>
                 <div class="form-group full"><label>Remarks</label><textarea id="remarks"></textarea></div>
             </div>
             <div style="margin-top:20px; display:flex; gap:10px;">
-                <button type="submit" class="btn-primary">Save Customer</button>
+                <button type="submit" id="saveCustomerBtn" class="btn-primary">Save Customer</button>
                 <button type="button" class="btn-danger" onclick="closeCustomerModal()">Cancel</button>
             </div>
         </form>
@@ -313,7 +335,7 @@ th{background:#eef3f8;}
     </div>
 </div>
 
-<!-- DETAILS MODAL -->
+<!-- DETAILS MODAL (REMOVED WHATSAPP BUTTON) -->
 <div class="modal" id="detailsModal">
     <div class="modal-content">
         <div class="modal-header">
@@ -324,7 +346,6 @@ th{background:#eef3f8;}
         <div style="margin-top:20px; display:flex; gap:10px;">
             <button class="btn-primary" onclick="printApplication()">🖨 Print Application</button>
             <button class="btn-success" onclick="printReceipt()">🧾 Print Receipt</button>
-            <button class="btn-warning" style="background-color:#25D366; color:white;" onclick="sendWhatsAppMsg()">📱 WhatsApp Message</button>
         </div>
     </div>
 </div>
@@ -337,7 +358,7 @@ th{background:#eef3f8;}
             <span class="close" onclick="closeDocumentsModal()">&times;</span>
         </div>
         <div id="documentApplicationInfo"></div>
-        <div class="file-upload">
+        <div class="file-upload" id="documentUploadBox">
             <div class="form-grid">
                 <div class="form-group">
                     <label>Document Type</label>
@@ -353,7 +374,7 @@ th{background:#eef3f8;}
                 </div>
             </div>
             <br>
-            <button class="btn-primary" onclick="uploadDocument()">📤 Upload Document</button>
+            <button class="btn-primary" id="uploadDocBtn" onclick="uploadDocument()">📤 Upload Document</button>
         </div>
         <div style="margin-top:20px;">
             <h3 style="margin-bottom:15px;">Uploaded Documents</h3>
@@ -395,6 +416,9 @@ th{background:#eef3f8;}
             usersData = val;
         }
         checkLogin();
+        if(document.getElementById("usersModal").style.display === "block"){
+            displayUsersList();
+        }
     });
 
     db.ref('deleteRequests').on('value', (snapshot) => {
@@ -449,6 +473,10 @@ th{background:#eef3f8;}
                 document.getElementById("app").style.display = "block";
                 document.getElementById("currentLoggedInUser").innerText = "👤 " + currentUserObj.username + " (" + currentUserObj.role + ")";
                 document.getElementById("manageUsersBtn").style.display = (currentUserObj.role === "Admin") ? "inline-block" : "none";
+                
+                let isViewer = (currentUserObj.role === "Viewer");
+                document.getElementById("newCustomerBtn").style.display = isViewer ? "none" : "inline-block";
+                
                 renderApprovals();
             }
         } else {
@@ -573,22 +601,36 @@ th{background:#eef3f8;}
     function displayUsersList(){
         let tbody = document.getElementById("usersTableBody");
         tbody.innerHTML = "";
+        let loggedUser = getLoggedInUser();
+
         Object.keys(usersData).forEach(key => {
             let u = usersData[key];
+            let isMainSuperAdmin = (u.username.toLowerCase() === 'admin');
+
+            let canResetOrDelete = !isMainSuperAdmin;
+
             tbody.innerHTML += `
                 <tr>
-                    <td>${escapeHTML(u.username)}</td>
+                    <td><b>${escapeHTML(u.username)}</b></td>
                     <td>${escapeHTML(u.role)}</td>
-                    <td>${u.mustChangePassword ? 'Yes' : 'No'}</td>
-                    <td>
-                        <button class="btn-warning" onclick="resetUserPassword('${key}', '${escapeHTML(u.username)}')">Reset</button>
-                        ${u.username.toLowerCase() === 'admin' ? '' : `<button class="btn-danger" onclick="deleteUser('${key}')">Delete</button>`}
+                    <td style="text-align:center;">${u.mustChangePassword ? 'Yes' : 'No'}</td>
+                    <td style="text-align:right;">
+                        ${canResetOrDelete ? `
+                            <button class="btn-warning" style="padding:4px 8px; font-size:12px;" onclick="resetUserPassword('${key}', '${escapeHTML(u.username)}')">Reset</button>
+                            <button class="btn-danger" style="padding:4px 8px; font-size:12px; margin-left:2px;" onclick="deleteUser('${key}')">Delete</button>
+                        ` : `<span style="color:#28a745; font-size:12px; font-weight:bold;">Protected Main Admin</span>`}
                     </td>
                 </tr>`;
         });
     }
 
     function resetUserPassword(key, username){
+        let targetUser = usersData[key];
+        if(targetUser && targetUser.username.toLowerCase() === 'admin'){
+            alert("Action Denied: You cannot reset the password for the Main Admin!");
+            return;
+        }
+
         let newPass = prompt("Enter new password for " + username + ":", "123456");
         if(newPass){
             db.ref('users/' + key).update({ password: newPass, mustChangePassword: true }).then(() => {
@@ -603,8 +645,13 @@ th{background:#eef3f8;}
         let targetUser = usersData[key];
         if(!targetUser) return;
 
+        if(targetUser.username.toLowerCase() === 'admin'){
+            alert("Action Denied: Main Admin account cannot be deleted!");
+            return;
+        }
+
         if(loggedUser && loggedUser.role === "Admin"){
-            if(confirm("Delete this user?")){
+            if(confirm("Delete user " + targetUser.username + "?")){
                 db.ref('users/' + key).remove().then(() => displayUsersList());
             }
         } else {
@@ -638,6 +685,11 @@ th{background:#eef3f8;}
     }
 
     function openCustomerForm(){
+        let loggedUser = getLoggedInUser();
+        if(loggedUser && loggedUser.role === "Viewer"){
+            alert("Access Denied: Viewers cannot add new customers.");
+            return;
+        }
         document.getElementById("customerModal").style.display = "block";
         document.getElementById("customerForm").reset();
         document.getElementById("editFirebaseKey").value = "";
@@ -659,14 +711,18 @@ th{background:#eef3f8;}
 
     document.getElementById("customerForm").addEventListener("submit", function(e){
         e.preventDefault();
+        let loggedUser = getLoggedInUser();
+        if(loggedUser && loggedUser.role === "Viewer"){
+            alert("Access Denied: Viewers cannot save or modify customer details.");
+            return;
+        }
+
         let mobile = document.getElementById("mobile").value.trim();
         let aadhaar = document.getElementById("aadhaar").value.trim();
 
         if(!/^\d{10}$/.test(mobile)){ alert("Mobile must be 10 digits."); return; }
-        if(aadhaar !== "" && !/^\d{12}$/.test(aadhaar)){ alert("Aadhaar must be 12 digits."); return; }
 
         calculateDue();
-        let loggedUser = getLoggedInUser();
         let editKey = document.getElementById("editFirebaseKey").value;
 
         let certSelect = document.getElementById("certificateType");
@@ -678,11 +734,7 @@ th{background:#eef3f8;}
             fatherName: document.getElementById("fatherName").value.trim(),
             mobile: mobile,
             aadhaar: aadhaar,
-            dob: document.getElementById("dob").value,
-            gender: document.getElementById("gender").value,
             district: document.getElementById("district").value.trim(),
-            block: document.getElementById("block").value.trim(),
-            panchayat: document.getElementById("panchayat").value.trim(),
             village: document.getElementById("village").value.trim(),
             certificateType: selectedCerts,
             applicationDate: document.getElementById("applicationDate").value,
@@ -690,11 +742,8 @@ th{background:#eef3f8;}
             amountReceived: document.getElementById("amountReceived").value,
             dueAmount: document.getElementById("dueAmount").value,
             paymentMode: document.getElementById("paymentMode").value,
-            status: document.getElementById("status").value,
-            certificateNumber: document.getElementById("certificateNumber").value.trim(),
-            approvalDate: document.getElementById("approvalDate").value,
+            status: "Pending",
             deliveryDate: document.getElementById("deliveryDate").value,
-            address: document.getElementById("address").value.trim(),
             remarks: document.getElementById("remarks").value.trim(),
             lastModifiedBy: loggedUser ? loggedUser.username + " (" + loggedUser.role + ")" : "Unknown",
             lastModifiedAt: new Date().toLocaleString()
@@ -732,6 +781,8 @@ th{background:#eef3f8;}
         let search = document.getElementById("applicationSearch").value.toLowerCase().trim();
         let tbody = document.getElementById("applicationTableBody");
         tbody.innerHTML = "";
+        let loggedUser = getLoggedInUser();
+        let isViewer = (loggedUser && loggedUser.role === "Viewer");
 
         Object.keys(customersData).forEach(key => {
             let c = customersData[key];
@@ -746,7 +797,7 @@ th{background:#eef3f8;}
                     <td>${escapeHTML(c.certificateType)}</td>
                     <td>${escapeHTML(c.applicationDate)}</td>
                     <td>
-                        <select onchange="changeStatus('${key}', this.value)">
+                        <select ${isViewer ? 'disabled' : ''} onchange="changeStatus('${key}', this.value)">
                             <option ${c.status === "Pending" ? "selected" : ""}>Pending</option>
                             <option ${c.status === "Applied" ? "selected" : ""}>Applied</option>
                             <option ${c.status === "Approved" ? "selected" : ""}>Approved</option>
@@ -760,8 +811,8 @@ th{background:#eef3f8;}
                     <td><button class="btn-info" onclick="openDocuments('${key}')">📁 Docs</button></td>
                     <td>
                         <button class="btn-info" onclick="viewDetails('${key}')">View</button>
-                        <button class="btn-warning" onclick="editCustomer('${key}')">Edit</button>
-                        <button class="btn-danger" onclick="deleteCustomer('${key}')">Delete</button>
+                        <button class="btn-warning" ${isViewer ? 'disabled' : ''} onclick="editCustomer('${key}')">Edit</button>
+                        <button class="btn-danger" ${isViewer ? 'disabled' : ''} onclick="deleteCustomer('${key}')">Delete</button>
                     </td>
                 </tr>`;
         });
@@ -769,6 +820,11 @@ th{background:#eef3f8;}
 
     function changeStatus(key, newStatus){
         let loggedUser = getLoggedInUser();
+        if(loggedUser && loggedUser.role === "Viewer"){
+            alert("Access Denied: Viewers cannot change status.");
+            return;
+        }
+
         let updates = {
             status: newStatus,
             lastModifiedBy: loggedUser ? loggedUser.username + " (" + loggedUser.role + ")" : "Unknown",
@@ -781,12 +837,18 @@ th{background:#eef3f8;}
     }
 
     function editCustomer(key){
+        let loggedUser = getLoggedInUser();
+        if(loggedUser && loggedUser.role === "Viewer"){
+            alert("Access Denied: Viewers cannot edit records.");
+            return;
+        }
+
         let c = customersData[key];
         document.getElementById("customerModal").style.display = "block";
         document.getElementById("formTitle").innerText = "Edit Customer";
         document.getElementById("editFirebaseKey").value = key;
 
-        let fields = ["applicationNumber", "customerName", "fatherName", "mobile", "aadhaar", "dob", "gender", "district", "block", "panchayat", "village", "applicationDate", "serviceCharge", "amountReceived", "dueAmount", "paymentMode", "status", "certificateNumber", "approvalDate", "deliveryDate", "address", "remarks"];
+        let fields = ["applicationNumber", "customerName", "fatherName", "mobile", "aadhaar", "district", "village", "applicationDate", "serviceCharge", "amountReceived", "dueAmount", "paymentMode", "deliveryDate", "remarks"];
         fields.forEach(f => {
             let el = document.getElementById(f);
             if(el) el.value = c[f] || "";
@@ -797,9 +859,13 @@ th{background:#eef3f8;}
         Array.from(certSelect.options).forEach(opt => { opt.selected = selectedCerts.includes(opt.value); });
     }
 
-    // STRICT DELETE TRANSACTION / APPLICATION RULE (STAFF -> REQUEST, ADMIN -> DIRECT DELETE)
     function deleteCustomer(key){
         let loggedUser = getLoggedInUser();
+        if(loggedUser && loggedUser.role === "Viewer"){
+            alert("Access Denied: Viewers cannot delete or request deletion.");
+            return;
+        }
+
         let targetCustomer = customersData[key];
         if(!targetCustomer) return;
 
@@ -841,15 +907,6 @@ th{background:#eef3f8;}
 
     function closeDetailsModal(){ document.getElementById("detailsModal").style.display = "none"; }
 
-    function sendWhatsAppMsg(){
-        if(!currentDetailsKey) return;
-        let c = customersData[currentDetailsKey];
-        let msg = `Hello ${c.customerName}, your application ${c.applicationNumber} status is: ${c.status}. - Online Solutions Point`;
-        let mobile = c.mobile.replace(/\D/g, '');
-        if(mobile.length === 10) mobile = "91" + mobile;
-        window.open(`https://wa.me/${mobile}?text=` + encodeURIComponent(msg), '_blank');
-    }
-
     function openSearchModal(){
         document.getElementById("searchModal").style.display = "block";
         document.getElementById("customerSearch").value = "";
@@ -861,6 +918,9 @@ th{background:#eef3f8;}
         let search = document.getElementById("customerSearch").value.toLowerCase().trim();
         let tbody = document.getElementById("searchResults");
         tbody.innerHTML = "";
+        let loggedUser = getLoggedInUser();
+        let isViewer = (loggedUser && loggedUser.role === "Viewer");
+
         Object.keys(customersData).forEach(key => {
             let c = customersData[key];
             let text = (c.applicationNumber + " " + c.customerName + " " + c.mobile).toLowerCase();
@@ -873,7 +933,7 @@ th{background:#eef3f8;}
                         <td>${escapeHTML(c.certificateType)}</td>
                         <td>
                             <button class="btn-info" onclick="viewDetails('${key}'); closeSearchModal();">View</button>
-                            <button class="btn-warning" onclick="editCustomer('${key}'); closeSearchModal();">Edit</button>
+                            <button class="btn-warning" ${isViewer ? 'disabled' : ''} onclick="editCustomer('${key}'); closeSearchModal();">Edit</button>
                         </td>
                     </tr>`;
             }
@@ -886,11 +946,22 @@ th{background:#eef3f8;}
         currentDocumentAppNo = c.applicationNumber;
         document.getElementById("documentsModal").style.display = "block";
         document.getElementById("documentApplicationInfo").innerHTML = `<div class="detail-box"><strong>App No:</strong> ${c.applicationNumber} | <strong>Name:</strong> ${c.customerName}</div>`;
+        
+        let loggedUser = getLoggedInUser();
+        let isViewer = (loggedUser && loggedUser.role === "Viewer");
+        document.getElementById("documentUploadBox").style.display = isViewer ? "none" : "block";
+
         loadDocumentsFirebase(c.applicationNumber);
     }
     function closeDocumentsModal(){ document.getElementById("documentsModal").style.display = "none"; }
 
     function uploadDocument(){
+        let loggedUser = getLoggedInUser();
+        if(loggedUser && loggedUser.role === "Viewer"){
+            alert("Access Denied: Viewers cannot upload documents.");
+            return;
+        }
+
         let type = document.getElementById("documentType").value;
         let fileInput = document.getElementById("documentFile");
         let file = fileInput.files[0];
@@ -912,29 +983,58 @@ th{background:#eef3f8;}
         reader.readAsDataURL(file);
     }
 
+    function viewDocumentPreview(dataUrl, fileName) {
+        let win = window.open("", "_blank");
+        if (win) {
+            win.document.write(`
+                <html>
+                <head><title>Document Preview - ${fileName}</title></head>
+                <body style="margin:0; background:#333; display:flex; justify-content:center; align-items:center; height:100vh;">
+                    ${dataUrl.startsWith("data:application/pdf") 
+                        ? `<iframe src="${dataUrl}" style="width:100%; height:100%; border:none;"></iframe>` 
+                        : `<img src="${dataUrl}" style="max-width:100%; max-height:100%; object-fit:contain;" />`
+                    }
+                </body>
+                </html>
+            `);
+        } else {
+            alert("Please allow popups to view the uploaded document.");
+        }
+    }
+
     function loadDocumentsFirebase(appNo){
         db.ref('documents').orderByChild('appNo').equalTo(appNo).once('value', (snapshot) => {
             let docs = snapshot.val() || {};
             let container = document.getElementById("documentsList");
             container.innerHTML = "";
             let keys = Object.keys(docs);
+            let loggedUser = getLoggedInUser();
+            let isViewer = (loggedUser && loggedUser.role === "Viewer");
+
             if(keys.length === 0){ container.innerHTML = "No documents found."; return; }
             keys.forEach(k => {
                 let d = docs[k];
                 container.innerHTML += `
                     <div class="document-item">
-                        <span><b>${d.docType}</b> - ${d.fileName}</span>
+                        <span><b>${escapeHTML(d.docType)}</b> - ${escapeHTML(d.fileName)}</span>
                         <div>
-                            <button class="btn-info" onclick="window.open('${d.dataUrl}')">View</button>
-                            <button class="btn-danger" onclick="deleteDocItem('${k}', '${appNo}')">Delete</button>
+                            <button class="btn-info" onclick="viewDocumentPreview(window.docStore['${k}'], '${escapeHTML(d.fileName)}')">View</button>
+                            <button class="btn-danger" ${isViewer ? 'disabled' : ''} onclick="deleteDocItem('${k}', '${appNo}')">Delete</button>
                         </div>
                     </div>`;
+                if(!window.docStore) window.docStore = {};
+                window.docStore[k] = d.dataUrl;
             });
         });
     }
 
     function deleteDocItem(docKey, appNo){
         let loggedUser = getLoggedInUser();
+        if(loggedUser && loggedUser.role === "Viewer"){
+            alert("Access Denied: Viewers cannot delete documents.");
+            return;
+        }
+
         if(loggedUser && loggedUser.role === "Admin"){
             if(confirm("Delete this document?")){
                 db.ref('documents/' + docKey).remove().then(() => loadDocumentsFirebase(appNo));
@@ -953,7 +1053,6 @@ th{background:#eef3f8;}
         }
     }
 
-    // RENDER APPROVALS FOR ADMIN (FOR DELETION REQUESTS & FORGOT PASSWORD)
     function renderApprovals(){
         let loggedUser = getLoggedInUser();
         let sec = document.getElementById("approvalSection");
@@ -970,7 +1069,6 @@ th{background:#eef3f8;}
         let list = document.getElementById("approvalList");
         list.innerHTML = "";
 
-        // Render Delete Requests
         delKeys.forEach(k => {
             let r = deleteRequestsData[k];
             list.innerHTML += `
@@ -987,7 +1085,6 @@ th{background:#eef3f8;}
                 </tr>`;
         });
 
-        // Render Forgot Password Requests
         fKeys.forEach(k => {
             let r = forgotRequestsData[k];
             list.innerHTML += `
@@ -1023,6 +1120,11 @@ th{background:#eef3f8;}
     }
 
     function resetForgot(key, username){
+        if(username.toLowerCase() === 'admin'){
+            alert("Action Denied: Main Admin password cannot be reset via forgot password approval!");
+            return;
+        }
+
         let newPass = prompt("Enter new temporary password for " + username + ":", "123456");
         if(newPass){
             let uKey = Object.keys(usersData).find(k => usersData[k].username.toLowerCase() === username.toLowerCase());
@@ -1043,11 +1145,49 @@ th{background:#eef3f8;}
         w.print();
     }
 
+    // UPDATED PRINT RECEIPT WITH SHOP NAME, ADDRESS AND MOBILE NUMBER
     function printReceipt(){
         if(!currentDetailsKey) return;
         let c = customersData[currentDetailsKey];
         let w = window.open("", "_blank");
-        w.document.write(`<h3>Receipt</h3><p>App No: ${c.applicationNumber}</p><p>Name: ${c.customerName}</p><p>Received: ₹${c.amountReceived}</p>`);
+        w.document.write(`
+            <html>
+            <head>
+                <title>Payment Receipt - ${escapeHTML(c.applicationNumber)}</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 25px; color: #222; }
+                    .receipt-card { border: 2px solid #1f4e78; padding: 20px; border-radius: 8px; max-width: 500px; margin: auto; }
+                    .header-title { text-align: center; color: #1f4e78; margin: 0; font-size: 22px; font-weight: bold; }
+                    .sub-header { text-align: center; color: #555; font-size: 13px; margin-top: 4px; margin-bottom: 15px; }
+                    .line { border-bottom: 2px dashed #1f4e78; margin: 15px 0; }
+                    .info-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+                    .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #777; }
+                </style>
+            </head>
+            <body>
+                <div class="receipt-card">
+                    <h2 class="header-title">Online Solution point</h2>
+                    <div class="sub-header">
+                        Panah Kola, Madhupur, Deoghar Jharkhand 815353<br>
+                        <strong>Mobile:</strong> 9507005718
+                    </div>
+                    <div class="line"></div>
+                    <div class="info-row"><span><strong>Receipt Date:</strong></span> <span>${new Date().toLocaleDateString()}</span></div>
+                    <div class="info-row"><span><strong>Application No:</strong></span> <span>${escapeHTML(c.applicationNumber)}</span></div>
+                    <div class="info-row"><span><strong>Customer Name:</strong></span> <span>${escapeHTML(c.customerName)}</span></div>
+                    <div class="info-row"><span><strong>Mobile:</strong></span> <span>${escapeHTML(c.mobile)}</span></div>
+                    <div class="info-row"><span><strong>Certificate Type:</strong></span> <span>${escapeHTML(c.certificateType)}</span></div>
+                    <div class="line"></div>
+                    <div class="info-row"><span><strong>Service Charge:</strong></span> <span>₹${escapeHTML(c.serviceCharge || "0")}</span></div>
+                    <div class="info-row"><span><strong>Amount Received:</strong></span> <span><strong>₹${escapeHTML(c.amountReceived || "0")}</strong></span></div>
+                    <div class="info-row"><span><strong>Due Amount:</strong></span> <span>₹${escapeHTML(c.dueAmount || "0")}</span></div>
+                    <div class="info-row"><span><strong>Payment Mode:</strong></span> <span>${escapeHTML(c.paymentMode || "Cash")}</span></div>
+                    <div class="line"></div>
+                    <div class="footer">Thank you for visiting Online Solution point!</div>
+                </div>
+            </body>
+            </html>
+        `);
         w.print();
     }
 </script>
